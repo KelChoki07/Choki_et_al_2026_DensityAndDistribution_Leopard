@@ -16,6 +16,104 @@ summary(cap_hist)
 initialsigma <- RPSV(cap_hist, CC = TRUE) #4332.366 [initialsigma * 3=12997.1]
 initialsigma
 
+#load your layers
+elevation <- raster("elevation5km.tif")
+treecover <- raster("treecover5km.tif")
+housden <- raster("housden5km.tif")
+strmden   <- raster("strmden5km.tif")
+tigerden  <- raster("tigerden5km.tif")
+terrain <- raster("TRI5km.tif")
+
+#check the crs
+sf::st_crs(elevation)$proj4string==sf::st_crs(treecover)$proj4string
+sf::st_crs(housden)$proj4string==sf::st_crs(strmden)$proj4string
+sf::st_crs(terrain)$proj4string==sf::st_crs(tigerden)$proj4string
+# 
+# #check the extension #raster package
+extent(elevation)==extent(treecover)
+extent(housden)==extent(strmden)
+strmden <- resample(strmden,elevation)
+extent(tigerden)==extent(terrain)
+# #check cell size
+res(elevation)==res(treecover)
+res(housden)==res(strmden)
+res(tigerden)==res(terrain)
+
+values(elevation)
+values(treecover)
+values(housden)
+values(strmden)
+values(tigerden)
+values(terrain)
+
+# Standardise the raster
+elevation1 <- scale(elevation, center = TRUE, scale = TRUE)
+# sum(is.na(values(elevation1))) #23082
+
+# Convert to polygon, secr again complains about rasters
+elevation_poly <- as(elevation1, "SpatialGridDataFrame")
+plot(elevation_poly)
+plot(hab_mask,add=T) 
+# Rename columns
+names(elevation_poly) <- "elevation"
+
+
+treecover1 <- scale(treecover, center = TRUE, scale = TRUE)
+# sum(is.na(values(treecover1))) #22541
+
+# Convert to polygon, secr again complains about rasters
+treecover_poly <- as(treecover1 , "SpatialGridDataFrame")
+plot(treecover_poly)
+plot(hab_mask,add=T)
+# Rename columns
+names(treecover_poly) <- "treecover"
+
+housden1 <- scale(housden, center = TRUE, scale = TRUE)
+# sum(is.na(values(treecover1))) #22541
+
+# Convert to polygon, secr again complains about rasters
+housden_poly <- as(housden1 , "SpatialGridDataFrame")
+plot(housden_poly)
+plot(hab_mask,add=T)
+# Rename columns
+names(housden_poly) <- "housden"
+
+strmden1 <- scale(strmden, center = TRUE, scale = TRUE)
+# Convert to polygon, secr again complains about rasters
+strmden_poly <- as(strmden1, "SpatialGridDataFrame")
+plot(strmden_poly)
+plot(hab_mask,add=T)
+# Rename columns
+names(strmden_poly) <- "strmden"
+
+
+tigerden1 <- scale(tigerden, center = TRUE, scale = TRUE)
+# Convert to polygon, secr again complains about rasters
+tigerden_poly <- as(tigerden1, "SpatialGridDataFrame")
+plot(tigerden_poly)
+plot(hab_mask,add=T)
+# Rename columns
+names(tigerden_poly) <- "tigerden"
+
+terrain1 <- scale(terrain, center = TRUE, scale = TRUE)
+# Convert to polygon, secr again complains about rasters
+terrain_poly <- as(terrain1, "SpatialGridDataFrame")
+plot(terrain_poly)
+plot(hab_mask,add=T)
+# Rename columns
+names(terrain_poly) <- "terrain"
+
+
+str(hab_mask)
+
+# Add covariates to space mask
+hab_mask <- addCovariates(hab_mask, elevation_poly)
+hab_mask <- addCovariates(hab_mask, treecover_poly)
+hab_mask <- addCovariates(hab_mask, housden_poly)
+hab_mask <- addCovariates(hab_mask, strmden_poly)
+hab_mask <- addCovariates(hab_mask, tigerden_poly)
+hab_mask <- addCovariates(hab_mask, terrain_poly)
+
 # Plot the habitat mask
 plot(hab_mask, col = "lightgray", main = "Habitat Mask with Polygon Overlay")
 
